@@ -220,10 +220,9 @@ void scale_test(string mode = "test"){
     }
 }
 
-void angle_test(string mode = "test", bool use_rot = true){
+void angle_train(bool use_rot = true){
     line2Dup::Detector detector(128, {4, 8});
 
-    if(mode != "test"){
         Mat img = imread(prefix+"case1/train.png",CV_LOAD_IMAGE_GRAYSCALE);
         assert(!img.empty() && "check your img path");
 	imshow("test", img);
@@ -294,7 +293,13 @@ void angle_test(string mode = "test", bool use_rot = true){
         detector.writeClasses(prefix+"case1/%s_templ.yaml");
         shapes.save_infos(infos_have_templ, prefix + "case1/test_info.yaml");
         std::cout << "train end" << std::endl << std::endl;
-    }else if(mode=="test"){
+}
+
+
+
+void angle_test( bool use_rot = true){
+    line2Dup::Detector detector(128, {4, 8});
+
         std::vector<std::string> ids;
         ids.push_back("test");
         detector.readClasses(ids, prefix+"case1/%s_templ.yaml");
@@ -379,7 +384,6 @@ void angle_test(string mode = "test", bool use_rot = true){
         waitKey(0);
 
         std::cout << "test end" << std::endl << std::endl;
-    }
 }
 
 void noise_test(string mode = "test"){
@@ -511,7 +515,8 @@ void MIPP_test(){
 
 int main(){
     // scale_test("test");
-    angle_test("test", true); // test or train
+    //angle_train(true); // test or train
+    angle_test(true); // test or train
     // noise_test("test");
     return 0;
 }
