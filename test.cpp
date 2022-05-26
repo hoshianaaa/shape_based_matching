@@ -3,6 +3,9 @@
 #include <iostream>
 #include <assert.h>
 #include <chrono>
+
+#include "ros/ros.h"
+
 using namespace std;
 using namespace cv;
 
