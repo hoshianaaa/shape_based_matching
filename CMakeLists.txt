@@ -37,8 +37,6 @@ include_directories(${roscpp_INCLUDE_DIRS})
 # include MIPP headers
 include_directories (${INCLUDE_DIRECTORIES} "${CMAKE_CURRENT_SOURCE_DIR}/MIPP/")
 
-
 # test exe
 add_executable(${PROJECT_NAME}_test line2Dup.cpp test.cpp)
 target_link_libraries(${PROJECT_NAME}_test ${OpenCV_LIBS} ${roscpp_LIBRARIES})
-

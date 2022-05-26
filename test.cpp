@@ -516,7 +516,12 @@ void MIPP_test(){
     std::cout << "----------" << std::endl << std::endl;
 }
 
-int main(){
+int main(int argc, char *argv[]){
+
+    ros::init(argc, argv, "shape_based_matching");	
+
+    ros::NodeHandle nh = ros::NodeHandle();
+
     // scale_test("test");
     //angle_train(true); // test or train
     cv::Mat test_img = cv::imread(prefix+"case1/test.png", CV_LOAD_IMAGE_GRAYSCALE);
