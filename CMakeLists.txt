@@ -28,15 +28,20 @@ SET(CMAKE_CXX_FLAGS_RELEASE "-O3")
 # opencv
 set(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH} /opt/ros/kinetic)
 
-find_package(roscpp)
+find_package(catkin REQUIRED COMPONENTS 
+  roscpp 
+  cv_bridge
+  image_transport
+) 
+
 find_package(OpenCV 3 REQUIRED)
 
 include_directories(${OpenCV_INCLUDE_DIRS})
-include_directories(${roscpp_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS})
 
 # include MIPP headers
 include_directories (${INCLUDE_DIRECTORIES} "${CMAKE_CURRENT_SOURCE_DIR}/MIPP/")
 
 # test exe
 add_executable(${PROJECT_NAME}_test line2Dup.cpp test.cpp)
-target_link_libraries(${PROJECT_NAME}_test ${OpenCV_LIBS} ${roscpp_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_test ${OpenCV_LIBS} ${catkin_LIBRARIES})

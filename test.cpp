@@ -6,6 +6,11 @@
 
 #include "ros/ros.h"
 
+#include <cv_bridge/cv_bridge.h>
+#include <image_transport/image_transport.h>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+
 using namespace std;
 using namespace cv;
 
@@ -384,7 +389,7 @@ void angle_test( bool use_rot, cv::Mat image){
         }
 
         imshow("img", img);
-        waitKey(0);
+        waitKey(1);
 
         std::cout << "test end" << std::endl << std::endl;
 }
@@ -516,16 +521,27 @@ void MIPP_test(){
     std::cout << "----------" << std::endl << std::endl;
 }
 
+void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
+  cv::Mat gray;
+  cv::Mat image = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
+  cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+  angle_test(true, gray); // test or train
+  //cv::imshow("image",image);
+  //cv::waitKey(1);
+}
+
 int main(int argc, char *argv[]){
 
     ros::init(argc, argv, "shape_based_matching");	
-
     ros::NodeHandle nh = ros::NodeHandle();
+    image_transport::ImageTransport it(nh);
+    image_transport::Subscriber image_sub = it.subscribe("/usb_cam/image_raw", 10, imageCallback);
 
     // scale_test("test");
     //angle_train(true); // test or train
-    cv::Mat test_img = cv::imread(prefix+"case1/test.png", CV_LOAD_IMAGE_GRAYSCALE);
-    angle_test(true, test_img); // test or train
+    //cv::Mat test_img = cv::imread(prefix+"case1/test.png", CV_LOAD_IMAGE_GRAYSCALE);
+    //angle_test(true, test_img); // test or train
     // noise_test("test");
+    ros::spin();
     return 0;
 }
