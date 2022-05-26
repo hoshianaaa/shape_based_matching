@@ -297,7 +297,7 @@ void angle_train(bool use_rot = true){
 
 
 
-void angle_test( bool use_rot = true){
+void angle_test( bool use_rot, cv::Mat image){
     line2Dup::Detector detector(128, {4, 8});
 
         std::vector<std::string> ids;
@@ -307,7 +307,7 @@ void angle_test( bool use_rot = true){
         // angle & scale are saved here, fetched by match id
         auto infos = shape_based_matching::shapeInfo_producer::load_infos(prefix + "case1/test_info.yaml");
 
-        Mat test_img = imread(prefix+"case1/test.png", CV_LOAD_IMAGE_GRAYSCALE);
+        Mat test_img = image;
         assert(!test_img.empty() && "check your img path");
 
         int padding = 250;
@@ -516,7 +516,8 @@ void MIPP_test(){
 int main(){
     // scale_test("test");
     //angle_train(true); // test or train
-    angle_test(true); // test or train
+    cv::Mat test_img = cv::imread(prefix+"case1/test.png", CV_LOAD_IMAGE_GRAYSCALE);
+    angle_test(true, test_img); // test or train
     // noise_test("test");
     return 0;
 }
