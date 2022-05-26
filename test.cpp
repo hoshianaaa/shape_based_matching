@@ -6,7 +6,7 @@
 using namespace std;
 using namespace cv;
 
-static std::string prefix = "/home/meiqua/shape_based_matching/test/";
+static std::string prefix = "/root/shape_based_matching/test/";
 
 class Timer
 {
@@ -224,12 +224,15 @@ void angle_test(string mode = "test", bool use_rot = true){
     line2Dup::Detector detector(128, {4, 8});
 
     if(mode != "test"){
-        Mat img = imread(prefix+"case1/train.png");
+        Mat img = imread(prefix+"case1/train.png",CV_LOAD_IMAGE_GRAYSCALE);
         assert(!img.empty() && "check your img path");
+	imshow("test", img);
+	waitKey(0);
 
-        Rect roi(130, 110, 270, 270);
-        img = img(roi).clone();
+        img = img.clone();
         Mat mask = Mat(img.size(), CV_8UC1, {255});
+	imshow("test2", mask);
+	waitKey(0);
 
         // padding to avoid rotating out
         int padding = 100;
@@ -299,7 +302,7 @@ void angle_test(string mode = "test", bool use_rot = true){
         // angle & scale are saved here, fetched by match id
         auto infos = shape_based_matching::shapeInfo_producer::load_infos(prefix + "case1/test_info.yaml");
 
-        Mat test_img = imread(prefix+"case1/test.png");
+        Mat test_img = imread(prefix+"case1/test.png", CV_LOAD_IMAGE_GRAYSCALE);
         assert(!test_img.empty() && "check your img path");
 
         int padding = 250;
