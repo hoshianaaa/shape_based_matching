@@ -228,18 +228,20 @@ void scale_test(string mode = "test"){
     }
 }
 
-void angle_train(bool use_rot = true){
+void angle_train(bool use_rot, Mat image){
+    std::cout << "start train!"<< std::endl;
     line2Dup::Detector detector(128, {4, 8});
 
-        Mat img = imread(prefix+"case1/train.png",CV_LOAD_IMAGE_GRAYSCALE);
+       //Mat img = imread(prefix+"case1/train.png",CV_LOAD_IMAGE_GRAYSCALE);
+        Mat img = image;
         assert(!img.empty() && "check your img path");
-	imshow("test", img);
-	waitKey(0);
+	//imshow("test", img);
+	//waitKey(0);
 
         img = img.clone();
         Mat mask = Mat(img.size(), CV_8UC1, {255});
-	imshow("test2", mask);
-	waitKey(0);
+	//imshow("test2", img);
+	//waitKey(0);
 
         // padding to avoid rotating out
         int padding = 100;
@@ -290,8 +292,8 @@ void angle_train(bool use_rot = true){
             }
             
             // will be faster if not showing this
-            imshow("train", to_show);
-            waitKey(1);
+     //       imshow("train", to_show);
+     //      waitKey(1);
 
             std::cout << "templ_id: " << templ_id << std::endl;
             if(templ_id != -1){
@@ -530,17 +532,25 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
   //cv::waitKey(1);
 }
 
+void temp_imageCallback(const sensor_msgs::ImageConstPtr& msg) {
+  cv::Mat gray;
+  cv::Mat image = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
+  cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+  angle_train(true, gray);
+}
+
 int main(int argc, char *argv[]){
 
     ros::init(argc, argv, "shape_based_matching");	
     ros::NodeHandle nh = ros::NodeHandle();
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber image_sub = it.subscribe("/usb_cam/image_raw", 10, imageCallback);
+    image_transport::Subscriber temp_image_sub = it.subscribe("/cripped_image", 10, temp_imageCallback);
 
     // scale_test("test");
     //angle_train(true); // test or train
     //cv::Mat test_img = cv::imread(prefix+"case1/test.png", CV_LOAD_IMAGE_GRAYSCALE);
-    //angle_test(true, test_img); // test or train
+    // angle_test(true, test_img); // test or train
     // noise_test("test");
     ros::spin();
     return 0;
