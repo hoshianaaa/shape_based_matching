@@ -17,7 +17,7 @@ def operator():
     # make bridge
     bridge = CvBridge()
     msg = bridge.cv2_to_imgmsg(im, encoding="bgr8")
-    rate = rospy.Rate(1) # 1hz
+    rate = rospy.Rate(50) # 1hz
     while not rospy.is_shutdown():
         pub.publish(msg)
         rate.sleep()

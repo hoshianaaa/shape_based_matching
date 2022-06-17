@@ -222,7 +222,7 @@ void scale_test(string mode = "test"){
         }
 
         imshow("img", img);
-        waitKey(0);
+        waitKey(10);
 
         std::cout << "test end" << std::endl << std::endl;
     }
