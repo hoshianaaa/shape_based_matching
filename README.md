@@ -338,3 +338,51 @@ Name=start-slam
 Comment[en_US]=start slam application.
 Comment=start slam application.
 ```
+
+## docker image作成
+
+```
+FROM ros:kinetic
+# install ros tutorials packages
+RUN apt-get update
+RUN apt-get install -y ros-kinetic-ros-cv-bridge \
+    ros-kinetic-image-transport \
+    && rm -rf /var/lib/apt/lists/
+RUN git clone https://github.com/hoshianaaa/shape_based_matching.git
+RUN cd shape_based_matching
+RUN mkdir build && build
+RUN cmake .. && build
+RUN source ../in_bashrc.sh
+RUN ./shape_based_matching
+```
+
+```
+    1  sudo apt update
+    2  cd
+    3  sudo apt install ros-kinetic-cv-bridge
+    4  sudo apt install ros-kinetic-cv-bridge -y
+    5  his
+    6  history 
+    7  sudo apt install git -y
+    8  git clone https://github.com/hoshianaaa/shape_based_matching.git
+    9  ls
+   10  cd shape_based_matching/
+   11  mkdir build 
+   12  cd build/
+   13  cmake ..
+   14  sudo apt install ros-kinetic-image-transport
+   15  make
+   16  ls
+   17  cmake ..
+   18  make
+   19  history 
+   20  ls
+   21  ./shape_based_matching_test 
+   22  cd ..
+   23  source in_bashrc.sh 
+   24  ./build/shape_based_matching_test 
+   25  ls
+   26  clear
+   27  history 
+
+```
