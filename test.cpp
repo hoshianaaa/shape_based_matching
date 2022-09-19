@@ -629,6 +629,8 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
       edges_msg.points.push_back(p);
     }
 
+    edges_pub.publish(edges_msg);
+
   }
   //cv::imshow("image",image);
   //cv::waitKey(1);
