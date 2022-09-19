@@ -397,8 +397,8 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
 
             if (i == 0)
             {
-              result_x = center_x;
-              result_y = center_y;
+              result_x = center_x - padding;
+              result_y = center_y - padding;
               result_ang = match.template_id;
             }
 
