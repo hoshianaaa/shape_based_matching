@@ -18,9 +18,9 @@
 using namespace std;
 using namespace cv;
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 
-static std::string prefix = "/root/shape_based_matching/test/";
+static std::string prefix = "/shape_based_matching/test/";
 
 int temp_img_width = 50;
 int temp_img_height = 100;
