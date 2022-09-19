@@ -345,7 +345,7 @@ Comment=start slam application.
 FROM ros:kinetic
 # install ros tutorials packages
 RUN apt-get update
-RUN apt-get install -y ros-kinetic-ros-cv-bridge \
+RUN apt-get install -y ros-kinetic-cv-bridge \
     ros-kinetic-image-transport \
     && rm -rf /var/lib/apt/lists/
 RUN git clone https://github.com/hoshianaaa/shape_based_matching.git
