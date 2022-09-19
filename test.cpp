@@ -5,11 +5,13 @@
 #include <chrono>
 
 #include "ros/ros.h"
+#include "geometry_msgs/Point.h"
 
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
+
 
 using namespace std;
 using namespace cv;
@@ -541,7 +543,30 @@ void MIPP_test(){
     std::cout << "----------" << std::endl << std::endl;
 }
 
-void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
+class Matching{
+  private:
+    ros::NodeHandle nh;
+    ros::Publisher result_pub;
+    //ros::Subscriber sub;
+    image_transport::Subscriber train_sub, test_sub;
+    image_transport::ImageTransport it;
+    geometry_msgs::Point msg;
+  public:
+
+    Matching()
+      : it(nh)
+    {
+      result_pub = nh.advertise<geometry_msgs::Point>("matching/result", 1);
+      test_sub = it.subscribe("/usb_cam/image_raw", 10, &Matching::testCallback, this);
+      train_sub = it.subscribe("/cripped_image", 10, &Matching::trainCallback, this);
+
+    }
+
+    void trainCallback(const sensor_msgs::ImageConstPtr& msg);
+    void testCallback(const sensor_msgs::ImageConstPtr& msg);
+};
+
+void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
   cv::Mat gray;
   cv::Mat image = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
   cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
@@ -550,7 +575,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg) {
   //cv::waitKey(1);
 }
 
-void temp_imageCallback(const sensor_msgs::ImageConstPtr& msg) {
+void Matching::trainCallback(const sensor_msgs::ImageConstPtr& msg) {
   cv::Mat gray;
   cv::Mat image = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
   cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
@@ -560,11 +585,8 @@ void temp_imageCallback(const sensor_msgs::ImageConstPtr& msg) {
 int main(int argc, char *argv[]){
 
     ros::init(argc, argv, "shape_based_matching");	
-    ros::NodeHandle nh = ros::NodeHandle();
-    image_transport::ImageTransport it(nh);
-    image_transport::Subscriber image_sub = it.subscribe("/usb_cam/image_raw", 10, imageCallback);
-    image_transport::Subscriber temp_image_sub = it.subscribe("/cripped_image", 10, temp_imageCallback);
-
+    //ros::NodeHandle nh = ros::NodeHandle();
+    Matching mc;
     // scale_test("test");
     //angle_train(true); // test or train
     //cv::Mat test_img = cv::imread(prefix+"case1/test.png", CV_LOAD_IMAGE_GRAYSCALE);
