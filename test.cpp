@@ -6,6 +6,8 @@
 
 #include "ros/ros.h"
 #include "geometry_msgs/Point.h"
+#include "geometry_msgs/Point32.h"
+#include "geometry_msgs/Polygon.h"
 
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
@@ -314,7 +316,7 @@ void angle_train(bool use_rot, Mat image){
 
 
 
-bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angle){
+bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angle, std::vector<double> &edges_x, std::vector<double> &edges_y){
     line2Dup::Detector detector(128, {4, 8});
 
         std::vector<std::string> ids;
@@ -324,7 +326,8 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
         int id = 0;
         auto templ = detector.getTemplates("test", id);
 
-        std::vector<double> edges_x, edges_y;
+        edges_x.clear();
+        edges_y.clear();
 
         for(int i=0; i<templ[0].features.size(); i++){
             auto feat = templ[0].features[i];
@@ -578,7 +581,7 @@ void MIPP_test(){
 class Matching{
   private:
     ros::NodeHandle nh;
-    ros::Publisher result_pub;
+    ros::Publisher result_pub, edges_pub;
     //ros::Subscriber sub;
     image_transport::Subscriber train_sub, test_sub;
     image_transport::ImageTransport it;
@@ -588,6 +591,7 @@ class Matching{
       : it(nh)
     {
       result_pub = nh.advertise<geometry_msgs::Point>("matching/result", 1);
+      edges_pub = nh.advertise<geometry_msgs::Polygon>("matching/edges", 1);
       test_sub = it.subscribe("/usb_cam/image_raw", 10, &Matching::testCallback, this);
       train_sub = it.subscribe("/cripped_image", 10, &Matching::trainCallback, this);
 
@@ -602,8 +606,9 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
   cv::Mat image = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
   cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
 
+  std::vector<double> edges_x, edges_y;
   double result_x, result_y, result_angle;
-  auto ret = angle_test(true, gray, result_x, result_y, result_angle); // test or train
+  auto ret = angle_test(true, gray, result_x, result_y, result_angle, edges_x, edges_y); // test or train
   if(ret)
   {
     geometry_msgs::Point result_msg;
@@ -613,6 +618,17 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
     result_msg.z = result_angle;
 
     result_pub.publish(result_msg);
+
+    geometry_msgs::Polygon edges_msg;
+
+    for (int i=0;i<edges_x.size();i++)
+    {
+      geometry_msgs::Point32 p;
+      p.x =(float)edges_x[i];
+      p.y = (float)edges_y[i];
+      edges_msg.points.push_back(p);
+    }
+
   }
   //cv::imshow("image",image);
   //cv::waitKey(1);
