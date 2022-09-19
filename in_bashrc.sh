@@ -5,4 +5,4 @@ export ROS_MASTER_URI=http://$master:11311
 export ROS_HOSTNAME=$client
 export ROS_IP=$client
 
-cd ~/shape_based_matching
+# cd ~/shapesed_matching
