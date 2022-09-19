@@ -16,6 +16,8 @@
 using namespace std;
 using namespace cv;
 
+const bool DEBUG = true;
+
 static std::string prefix = "/root/shape_based_matching/test/";
 
 int temp_img_width = 50;
@@ -312,7 +314,7 @@ void angle_train(bool use_rot, Mat image){
 
 
 
-void angle_test( bool use_rot, cv::Mat image){
+bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angle){
     line2Dup::Detector detector(128, {4, 8});
 
         std::vector<std::string> ids;
@@ -348,7 +350,10 @@ void angle_test( bool use_rot, cv::Mat image){
         if(img.channels() == 1) cvtColor(img, img, CV_GRAY2BGR);
 
         std::cout << "matches.size(): " << matches.size() << std::endl;
+        
         size_t top5 = 100;
+
+        double result_x, result_y, result_ang;
         if(top5>matches.size()) top5=matches.size();
         for(size_t i=0; i<top5; i++){
             auto match = matches[i];
@@ -390,6 +395,13 @@ void angle_test( bool use_rot, cv::Mat image){
             double center_x = sum_x / templ[0].features.size();
             double center_y = sum_y / templ[0].features.size();
 
+            if (i == 0)
+            {
+              result_x = center_x;
+              result_y = center_y;
+              result_ang = match.template_id;
+            }
+
             cv::putText(img, to_string(int(round(match.similarity))),
                         Point(match.x+r_scaled-10, match.y-3), FONT_HERSHEY_PLAIN, 2, randColor);
             cv::drawMarker(img, cv::Point(int(center_x),int(center_y)), cv::Vec3b(0,0,200), cv::MARKER_CROSS);
@@ -410,10 +422,18 @@ void angle_test( bool use_rot, cv::Mat image){
             std::cout << "match.similarity: " << match.similarity << std::endl;
         }
 
-        imshow("img", img);
-        waitKey(1);
+        if (DEBUG)
+        {
+          imshow("img", img);
+          waitKey(1);
+        }
 
         std::cout << "test end" << std::endl << std::endl;
+
+        x = result_x;
+        y = result_y;
+        angle = result_ang;
+        return true;
 }
 
 void noise_test(string mode = "test"){
@@ -550,7 +570,6 @@ class Matching{
     //ros::Subscriber sub;
     image_transport::Subscriber train_sub, test_sub;
     image_transport::ImageTransport it;
-    geometry_msgs::Point msg;
   public:
 
     Matching()
@@ -570,7 +589,19 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
   cv::Mat gray;
   cv::Mat image = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
   cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
-  angle_test(true, gray); // test or train
+
+  double result_x, result_y, result_angle;
+  auto ret = angle_test(true, gray, result_x, result_y, result_angle); // test or train
+  if(ret)
+  {
+    geometry_msgs::Point result_msg;
+
+    result_msg.x = result_x;
+    result_msg.y = result_y;
+    result_msg.z = result_angle;
+
+    result_pub.publish(result_msg);
+  }
   //cv::imshow("image",image);
   //cv::waitKey(1);
 }
