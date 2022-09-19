@@ -321,6 +321,18 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
         ids.push_back("test");
         detector.readClasses(ids, prefix+"case1/%s_templ.yaml");
 
+        int id = 0;
+        auto templ = detector.getTemplates("test", id);
+
+        std::vector<double> edges_x, edges_y;
+
+        for(int i=0; i<templ[0].features.size(); i++){
+            auto feat = templ[0].features[i];
+            edges_x.push_back(feat.x);
+            edges_y.push_back(feat.y);
+        }
+
+
         // angle & scale are saved here, fetched by match id
         auto infos = shape_based_matching::shapeInfo_producer::load_infos(prefix + "case1/test_info.yaml");
 
