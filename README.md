@@ -350,10 +350,16 @@ RUN apt-get install -y ros-kinetic-cv-bridge \
     && rm -rf /var/lib/apt/lists/
 RUN git clone https://github.com/hoshianaaa/shape_based_matching.git
 RUN cd shape_based_matching
-RUN mkdir build && build
-RUN cmake .. && build
-RUN source ../in_bashrc.sh
-RUN ./shape_based_matching
+   &&  mkdir build
+   &&  cd build
+   &&  cmake ..
+   &&  make
+```
+
+docker image 実行 && shape_based_matching実行
+
+```
+docker run -it --rm shape_based_matching bash shape_based_matching/run
 ```
 
 ```
