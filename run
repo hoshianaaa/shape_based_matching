@@ -1,0 +1,3 @@
+CRIPT_DIR=$(cd $(dirname $0); pwd)
+source $CRIPT_DIR/in_bashrc.sh
+.$CRIPT_DIR/build/shape_based_matching_test
