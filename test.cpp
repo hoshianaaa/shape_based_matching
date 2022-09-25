@@ -374,7 +374,7 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
         std::cout << "test img size: " << img.rows * img.cols << std::endl << std::endl;
 
         Timer timer;
-        auto matches = detector.match(img, 90, ids);
+        auto matches = detector.match(img, 10, ids); // image, threshold(0 ~ 100?)
         timer.out();
 
         if(img.channels() == 1) cvtColor(img, img, CV_GRAY2BGR);
