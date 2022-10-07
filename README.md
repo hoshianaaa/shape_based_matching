@@ -399,6 +399,8 @@ docker run -it --rm shape_based_matching bash shape_based_matching/run
 
 ```
 
-# docker commit やり方
+# docker push やり方
 
 https://zenn.dev/katan/articles/1d5ff92fd809e7
+
+shape_based_matching : docker repo https://hub.docker.com/repository/docker/hoshianaaa222/shape_based_mathcing
