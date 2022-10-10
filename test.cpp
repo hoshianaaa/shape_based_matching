@@ -237,7 +237,8 @@ void scale_test(string mode = "test"){
     }
 }
 
-void angle_train(bool use_rot, Mat image){
+bool angle_train(bool use_rot, Mat image){
+   try{
     std::cout << "start train!"<< std::endl;
     line2Dup::Detector detector(128, {4, 8});
 
@@ -312,6 +313,12 @@ void angle_train(bool use_rot, Mat image){
         detector.writeClasses(prefix+"case1/%s_templ.yaml");
         shapes.save_infos(infos_have_templ, prefix + "case1/test_info.yaml");
         std::cout << "train end" << std::endl << std::endl;
+	return 1;
+     }
+     catch(...)
+     {
+       return 0;
+     }
 }
 
 
