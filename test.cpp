@@ -317,6 +317,8 @@ void angle_train(bool use_rot, Mat image){
 
 
 bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angle, std::vector<double> &edges_x, std::vector<double> &edges_y){
+
+	std::cout << "debug1" << std::endl;
     line2Dup::Detector detector(128, {4, 8});
 
         std::vector<std::string> ids;
