@@ -1,3 +1,29 @@
+# エラー
+
+```
+info.angle: 0
+too few features, abort
+OpenCV Error: Assertion failed (i->second.size() > size_t(template_id)) in getTemplates, file /shape_based_matching/line2Dup.cpp, line 1367
+terminate called after throwing an instance of 'cv::Exception'
+  what():  /shape_based_matching/line2Dup.cpp:1367: error: (-215) i->second.size() > size_t(template_id) in function getTemplates
+```
+
+```
+angle_train関数内部に以下を追加
+
+try
+{
+
+}
+catch(...)
+{
+
+}
+
+```
+
+
+
 # shape_based_matching  
 
 update:   
