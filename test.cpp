@@ -616,10 +616,10 @@ class Matching{
     Matching()
       : it(nh)
     {
-      result_pub = nh.advertise<geometry_msgs::Point>("matching/result", 1);
-      edges_pub = nh.advertise<geometry_msgs::Polygon>("matching/edges", 1);
-      test_sub = it.subscribe("/usb_cam/image_raw", 10, &Matching::testCallback, this);
-      train_sub = it.subscribe("/cripped_image", 10, &Matching::trainCallback, this);
+      result_pub = nh.advertise<geometry_msgs::Point>(name_space_ + "matching/result", 1);
+      edges_pub = nh.advertise<geometry_msgs::Polygon>(name_space_ + "matching/edges", 1);
+      test_sub = it.subscribe(name_space_ + "usb_cam/image_raw", 10, &Matching::testCallback, this);
+      train_sub = it.subscribe(name_space_ + "cripped_image", 10, &Matching::trainCallback, this);
 
     }
 
