@@ -20,6 +20,8 @@ using namespace cv;
 
 const bool DEBUG = false;
 
+std::string name_space_ = "";
+
 static std::string prefix = "/shape_based_matching/test/";
 
 int temp_img_width = 50;
@@ -669,7 +671,19 @@ void Matching::trainCallback(const sensor_msgs::ImageConstPtr& msg) {
 
 int main(int argc, char *argv[]){
 
-    ros::init(argc, argv, "shape_based_matching");	
+    std::cout << argc << std::endl;
+    
+    if (argc > 1)
+    {
+	name_space_ = std::string(argv[1]); 
+    	ros::init(argc, argv, name_space_ + "_" + "shape_based_matching");	
+    	name_space_ += "/";
+    }
+    else
+    {
+    	ros::init(argc, argv, name_space_ + "shape_based_matching");	
+    }
+
     //ros::NodeHandle nh = ros::NodeHandle();
     Matching mc;
     // scale_test("test");
