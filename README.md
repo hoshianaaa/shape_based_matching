@@ -1,3 +1,16 @@
+
+# docker push やり方
+
+https://zenn.dev/katan/articles/1d5ff92fd809e7
+
+shape_based_matching : docker repo https://hub.docker.com/repository/docker/hoshianaaa222/shape_based_mathcing
+
+```
+docker ps
+docker commit 090bdc6ffd84 hoshianaaa222/shape_based_matching:latest
+docker push hoshianaaa222/shape_based_matching:latest
+```
+
 # エラー
 
 ```
@@ -21,6 +34,7 @@ catch(...)
 }
 
 ```
+
 
 
 
@@ -424,9 +438,3 @@ docker run -it --rm shape_based_matching bash shape_based_matching/run
    27  history 
 
 ```
-
-# docker push やり方
-
-https://zenn.dev/katan/articles/1d5ff92fd809e7
-
-shape_based_matching : docker repo https://hub.docker.com/repository/docker/hoshianaaa222/shape_based_mathcing
