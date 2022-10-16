@@ -18,7 +18,7 @@
 using namespace std;
 using namespace cv;
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 
 std::string name_space_ = "";
 
@@ -232,7 +232,7 @@ void scale_test(string mode = "test"){
             cv::circle(img, {x, y}, r, color, 2);
         }
 
-        imshow("img", img);
+        //imshow("img", img);
         waitKey(10);
 
         std::cout << "test end" << std::endl << std::endl;
@@ -327,6 +327,11 @@ bool angle_train(bool use_rot, Mat image){
 
 bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angle, std::vector<double> &edges_x, std::vector<double> &edges_y){
 
+  try{
+      
+        if ((image.cols == 0) || (image.rows == 0))
+          return 0;
+
 	std::cout << "debug1" << std::endl;
     line2Dup::Detector detector(128, {4, 8});
 
@@ -391,6 +396,9 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
         if(img.channels() == 1) cvtColor(img, img, CV_GRAY2BGR);
 
         std::cout << "matches.size(): " << matches.size() << std::endl;
+
+        if (matches.size() == 0)
+          return 0;
         
         size_t top5 = 1;
 
@@ -475,6 +483,11 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
         y = result_y;
         angle = result_ang;
         return true;
+  }
+  catch(...)
+  {
+    return 0;
+  }
 }
 
 void noise_test(string mode = "test"){
@@ -636,22 +649,21 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
   std::vector<double> edges_x, edges_y;
   double result_x, result_y, result_angle;
   auto ret = angle_test(true, gray, result_x, result_y, result_angle, edges_x, edges_y); // test or train
+  geometry_msgs::Polygon result_msg;
+  geometry_msgs::Point32 point;
+  geometry_msgs::Polygon edges_msg;
+
   if(ret)
   {
-    geometry_msgs::Polygon result_msg;
-    geometry_msgs::Point32 point;
-
     point.x = result_x;
     point.y = result_y;
     point.z = result_angle;
 
     result_msg.points.push_back(point);
 
-    result_pub.publish(result_msg);
 
-    geometry_msgs::Polygon edges_msg;
+//    std::vector<cv::Point> pointList;
 
-  //  std::vector<cv::Point> pointList;
     for (int i=0;i<edges_x.size();i++)
     {
       geometry_msgs::Point32 p;
@@ -665,20 +677,25 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
       newPoint.y = (int)p.y + (int)point.y;
       pointList.push_back(newPoint);
 
-      points_img.at<uchar>(newPoint.y, newPoint.x) = 255;
+      try{
+        points_img.at<uchar>(newPoint.y, newPoint.x) = 255;
+      }
+      catch(...)
+      {
+      }
       */
     }
-    
-
-
-    edges_pub.publish(edges_msg);
-
     //cv::fillConvexPoly(gray, pointList, edges_x.size(), 0);
+  }
+  else
+  {
 
   }
-  cv::imshow("points_image", points_img);
-  cv::imshow("image",gray);
-  cv::waitKey(1);
+  edges_pub.publish(edges_msg);
+  result_pub.publish(result_msg);
+//  cv::imshow("points_image", points_img);
+//  cv::imshow("image",gray);
+  cv::waitKey(100);
 }
 
 void Matching::trainCallback(const sensor_msgs::ImageConstPtr& msg) {
