@@ -1,3 +1,25 @@
+# memo
+
+```
++      cv::fillConvexPoly(points_img, approx, approx.size(), 255);
++      cv::dilate(points_img, points_img, cv::Mat());
++      point_list.clear();
++      for (int i=0;i<points_img.cols;i++){
++        for (int j=0;j<points_img.rows;j++){
++          if (points_img.at<uchar>(j,i) == 255)
++          {
++            cv::Point p;
++            p.x = i;
++            p.y = j;
++            point_list.push_back(p);
++          }
++        }
++      }
++      approx.clear();
++      cv::convexHull(point_list, approx);
+
+```
+
 
 # docker push やり方
 
