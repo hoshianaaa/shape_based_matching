@@ -631,6 +631,7 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
   cv::Mat gray;
   cv::Mat image = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
   cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+  cv::Mat points_img = cv::Mat::zeros(gray.cols, gray.rows, CV_8UC1);
 
   std::vector<double> edges_x, edges_y;
   double result_x, result_y, result_angle;
@@ -650,19 +651,34 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
 
     geometry_msgs::Polygon edges_msg;
 
+  //  std::vector<cv::Point> pointList;
     for (int i=0;i<edges_x.size();i++)
     {
       geometry_msgs::Point32 p;
       p.x =(float)edges_x[i];
       p.y = (float)edges_y[i];
       edges_msg.points.push_back(p);
+
+/*
+      cv::Point newPoint;
+      newPoint.x = (int)p.x + (int)point.x;
+      newPoint.y = (int)p.y + (int)point.y;
+      pointList.push_back(newPoint);
+
+      points_img.at<uchar>(newPoint.y, newPoint.x) = 255;
+      */
     }
+    
+
 
     edges_pub.publish(edges_msg);
 
+    //cv::fillConvexPoly(gray, pointList, edges_x.size(), 0);
+
   }
-  //cv::imshow("image",image);
-  //cv::waitKey(1);
+  cv::imshow("points_image", points_img);
+  cv::imshow("image",gray);
+  cv::waitKey(1);
 }
 
 void Matching::trainCallback(const sensor_msgs::ImageConstPtr& msg) {
