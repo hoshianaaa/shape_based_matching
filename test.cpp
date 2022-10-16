@@ -697,6 +697,16 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
       std::vector<cv::Point> approx;
       cv::convexHull(point_list, approx);
       cv::fillConvexPoly(gray, approx, approx.size(), 0);
+      // closing
+      int morph_size = 2;
+      Mat element = getStructuringElement(
+      MORPH_RECT,
+      Size(2 * morph_size + 1,
+            2 * morph_size + 1),
+               Point(morph_size, morph_size));
+      cv::morphologyEx(gray, gray,
+      cv::MORPH_OPEN, element,
+          Point(-1, -1), 2);
     }
     else
     {
