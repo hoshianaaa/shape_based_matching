@@ -677,7 +677,7 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
         cv::Point newPoint;
         newPoint.x = (int)p.x + (int)point.x;
         newPoint.y = (int)p.y + (int)point.y;
-        //point_list.push_back(newPoint);
+        point_list.push_back(newPoint);
 
         if ((newPoint.x >= 0)&&(newPoint.x <points_img.cols)){
           if ((newPoint.y >= 0)&&(newPoint.y <points_img.rows)){
@@ -693,7 +693,10 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
         }
         */
       }
-      //cv::fillConvexPoly(gray, pointList, edges_x.size(), 0);
+
+      std::vector<cv::Point> approx;
+      cv::convexHull(point_list, approx);
+      cv::fillConvexPoly(gray, approx, approx.size(), 0);
     }
     else
     {
