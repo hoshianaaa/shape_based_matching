@@ -18,7 +18,7 @@
 using namespace std;
 using namespace cv;
 
-const bool DEBUG = false;
+const bool DEBUG = true;
 
 std::string name_space_ = "";
 
@@ -641,11 +641,11 @@ class Matching{
 };
 
 void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
-  cv::Mat gray;
+  cv::Mat gray, points_img;
   cv::Mat image = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
   cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
-  cv::Mat points_img = cv::Mat::zeros(gray.cols, gray.rows, CV_8UC1);
 
+  std::vector<cv::Point> point_list;
   std::vector<double> edges_x, edges_y;
   double result_x, result_y, result_angle;
   auto ret = angle_test(true, gray, result_x, result_y, result_angle, edges_x, edges_y); // test or train
@@ -653,49 +653,71 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
   geometry_msgs::Point32 point;
   geometry_msgs::Polygon edges_msg;
 
-  if(ret)
+  if ((gray.cols > 0) && (gray.rows > 0))
   {
-    point.x = result_x;
-    point.y = result_y;
-    point.z = result_angle;
+    points_img = cv::Mat::zeros(gray.rows, gray.cols, CV_8UC1);
 
-    result_msg.points.push_back(point);
-
-
-//    std::vector<cv::Point> pointList;
-
-    for (int i=0;i<edges_x.size();i++)
+    if(ret)
     {
-      geometry_msgs::Point32 p;
-      p.x =(float)edges_x[i];
-      p.y = (float)edges_y[i];
-      edges_msg.points.push_back(p);
+      point.x = result_x;
+      point.y = result_y;
+      point.z = result_angle;
 
-/*
-      cv::Point newPoint;
-      newPoint.x = (int)p.x + (int)point.x;
-      newPoint.y = (int)p.y + (int)point.y;
-      pointList.push_back(newPoint);
+      result_msg.points.push_back(point);
 
-      try{
-        points_img.at<uchar>(newPoint.y, newPoint.x) = 255;
-      }
-      catch(...)
+
+
+      for (int i=0;i<edges_x.size();i++)
       {
-      }
-      */
-    }
-    //cv::fillConvexPoly(gray, pointList, edges_x.size(), 0);
-  }
-  else
-  {
+        geometry_msgs::Point32 p;
+        p.x =(float)edges_x[i];
+        p.y = (float)edges_y[i];
+        edges_msg.points.push_back(p);
 
+        cv::Point newPoint;
+        newPoint.x = (int)p.x + (int)point.x;
+        newPoint.y = (int)p.y + (int)point.y;
+        //point_list.push_back(newPoint);
+
+        if ((newPoint.x >= 0)&&(newPoint.x <points_img.cols)){
+          if ((newPoint.y >= 0)&&(newPoint.y <points_img.rows)){
+            points_img.at<uchar>(newPoint.y, newPoint.x) = 255;
+          }
+        }
+
+  /*
+        try{
+        }
+        catch(...)
+        {
+        }
+        */
+      }
+      //cv::fillConvexPoly(gray, pointList, edges_x.size(), 0);
+    }
+    else
+    {
+
+    }
   }
   edges_pub.publish(edges_msg);
   result_pub.publish(result_msg);
-//  cv::imshow("points_image", points_img);
-//  cv::imshow("image",gray);
-  cv::waitKey(100);
+
+  if (DEBUG)
+  {
+    if ((gray.cols > 0) && (gray.rows > 0))
+    {
+        cv::imshow("image",gray);
+    }
+
+    if ((points_img.cols > 0) && (points_img.rows > 0))
+    {
+      cv::imshow("points_image", points_img);
+    }
+
+    cv::waitKey(100);
+  }
+
 }
 
 void Matching::trainCallback(const sensor_msgs::ImageConstPtr& msg) {
