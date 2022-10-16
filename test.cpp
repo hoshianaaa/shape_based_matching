@@ -616,7 +616,7 @@ class Matching{
     Matching()
       : it(nh)
     {
-      result_pub = nh.advertise<geometry_msgs::Point>(name_space_ + "matching/result", 1);
+      result_pub = nh.advertise<geometry_msgs::Polygon>(name_space_ + "matching/result", 1);
       edges_pub = nh.advertise<geometry_msgs::Polygon>(name_space_ + "matching/edges", 1);
       test_sub = it.subscribe(name_space_ + "usb_cam/image_raw", 10, &Matching::testCallback, this);
       train_sub = it.subscribe(name_space_ + "cripped_image", 10, &Matching::trainCallback, this);
@@ -637,11 +637,14 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
   auto ret = angle_test(true, gray, result_x, result_y, result_angle, edges_x, edges_y); // test or train
   if(ret)
   {
-    geometry_msgs::Point result_msg;
+    geometry_msgs::Polygon result_msg;
+    geometry_msgs::Point32 point;
 
-    result_msg.x = result_x;
-    result_msg.y = result_y;
-    result_msg.z = result_angle;
+    point.x = result_x;
+    point.y = result_y;
+    point.z = result_angle;
+
+    result_msg.points.push_back(point);
 
     result_pub.publish(result_msg);
 
