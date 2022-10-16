@@ -18,7 +18,7 @@
 using namespace std;
 using namespace cv;
 
-const bool DEBUG = false;
+const bool DEBUG = true;
 
 std::string name_space_ = "";
 
@@ -385,14 +385,14 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
         std::cout << "test img size: " << img.rows * img.cols << std::endl << std::endl;
 
         Timer timer;
-        auto matches = detector.match(img, 10, ids); // image, threshold(0 ~ 100?)
+        auto matches = detector.match(img, 30, ids); // image, threshold(0 ~ 100?)
         timer.out();
 
         if(img.channels() == 1) cvtColor(img, img, CV_GRAY2BGR);
 
         std::cout << "matches.size(): " << matches.size() << std::endl;
         
-        size_t top5 = 100;
+        size_t top5 = 1;
 
         double result_x, result_y, result_ang;
         if(top5>matches.size()) top5=matches.size();
