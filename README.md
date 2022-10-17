@@ -1,3 +1,25 @@
+# memo
+
+```
++      cv::fillConvexPoly(points_img, approx, approx.size(), 255);
++      cv::dilate(points_img, points_img, cv::Mat());
++      point_list.clear();
++      for (int i=0;i<points_img.cols;i++){
++        for (int j=0;j<points_img.rows;j++){
++          if (points_img.at<uchar>(j,i) == 255)
++          {
++            cv::Point p;
++            p.x = i;
++            p.y = j;
++            point_list.push_back(p);
++          }
++        }
++      }
++      approx.clear();
++      cv::convexHull(point_list, approx);
+
+```
+
 
 # docker push やり方
 
@@ -35,7 +57,19 @@ catch(...)
 
 ```
 
+## angle_test error
 
+![Screenshot from 2022-10-16 20-47-53](https://user-images.githubusercontent.com/40942409/196033767-1d12e5c6-443d-4b4c-887b-121bc8918b28.png)
+
+- solution: fix file path
+
+before
+
+![Screenshot from 2022-10-16 20-47-44](https://user-images.githubusercontent.com/40942409/196033778-3ad004a5-8278-47be-888b-b8e07f01a919.png)
+
+after
+
+![Screenshot from 2022-10-16 20-48-23](https://user-images.githubusercontent.com/40942409/196033783-de036519-4c77-4cc4-8625-b36ff4dd63d2.png)
 
 
 # shape_based_matching  

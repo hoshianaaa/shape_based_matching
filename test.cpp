@@ -14,6 +14,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
+const double PI=3.141592653589793;
 
 using namespace std;
 using namespace cv;
@@ -26,6 +27,33 @@ static std::string prefix = "/shape_based_matching/test/";
 
 int temp_img_width = 50;
 int temp_img_height = 100;
+
+double polygon_occupancy(std::vector<cv::Point> ps, cv::Mat image)
+{
+  double per = 1.0;
+  cv::Mat img = image.clone();
+
+  cv::Mat mask = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+  cv::fillConvexPoly(mask, ps, cv::Scalar(255));
+  int polygon_pix_num = cv::countNonZero(mask);
+  std::cout << "polygon pix num :" << polygon_pix_num << std::endl;
+  cv::bitwise_and(img, mask, img);
+  int in_polygon_pix_num = cv::countNonZero(img);
+  std::cout << "in polygon pix num :" << in_polygon_pix_num << std::endl;
+  per = (double)in_polygon_pix_num / polygon_pix_num;
+  //cv::imshow("mask", mask);
+  //cv::imshow("masked_img", img);
+  return per;
+}
+
+cv::Point rotate(cv::Point p, double deg)
+{
+  double rad = PI * deg / 180;
+  cv::Point res;
+  res.x = int( std::cos(rad) * p.x - std::sin(rad) * p.y);
+  res.y = int (std::sin(rad) * p.x + std::cos(rad) * p.y);
+  return res;
+}
 
 class Timer
 {
@@ -164,7 +192,7 @@ void scale_test(string mode = "test"){
             //feature numbers(missing it means using the detector initial num)
             int templ_id = detector.addTemplate(shapes.src_of(info), class_id, shapes.mask_of(info),
                                                 int(num_feature*info.scale));
-            std::cout << "templ_id: " << templ_id << std::endl;
+            //std::cout << "templ_id: " << templ_id << std::endl;
 
             // may fail when asking for too many feature_nums for small training img
             if(templ_id != -1){  // only record info when we successfully add template
@@ -232,7 +260,7 @@ void scale_test(string mode = "test"){
             cv::circle(img, {x, y}, r, color, 2);
         }
 
-        imshow("img", img);
+        //imshow("img", img);
         waitKey(10);
 
         std::cout << "test end" << std::endl << std::endl;
@@ -282,7 +310,7 @@ bool angle_train(bool use_rot, Mat image){
         for(auto& info: shapes.infos){
             Mat to_show = shapes.src_of(info);
 
-            std::cout << "\ninfo.angle: " << info.angle << std::endl;
+            //std::cout << "\ninfo.angle: " << info.angle << std::endl;
             int templ_id;
 
             if(is_first){
@@ -307,7 +335,7 @@ bool angle_train(bool use_rot, Mat image){
      //       imshow("train", to_show);
      //      waitKey(1);
 
-            std::cout << "templ_id: " << templ_id << std::endl;
+            //std::cout << "templ_id: " << templ_id << std::endl;
             if(templ_id != -1){
                 infos_have_templ.push_back(info);
             }
@@ -327,7 +355,12 @@ bool angle_train(bool use_rot, Mat image){
 
 bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angle, std::vector<double> &edges_x, std::vector<double> &edges_y){
 
-	std::cout << "debug1" << std::endl;
+  try{
+      
+        if ((image.cols == 0) || (image.rows == 0))
+          return 0;
+
+	//std::cout << "debug1" << std::endl;
     line2Dup::Detector detector(128, {4, 8});
 
         std::vector<std::string> ids;
@@ -382,17 +415,20 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
 
 //        cvtColor(img, img, CV_BGR2GRAY);
 
-        std::cout << "test img size: " << img.rows * img.cols << std::endl << std::endl;
+        //std::cout << "test img size: " << img.rows * img.cols << std::endl << std::endl;
 
         Timer timer;
-        auto matches = detector.match(img, 10, ids); // image, threshold(0 ~ 100?)
+        auto matches = detector.match(img, 30, ids); // image, threshold(0 ~ 100?)
         timer.out();
 
         if(img.channels() == 1) cvtColor(img, img, CV_GRAY2BGR);
 
-        std::cout << "matches.size(): " << matches.size() << std::endl;
+        //std::cout << "matches.size(): " << matches.size() << std::endl;
+
+        if (matches.size() == 0)
+          return 0;
         
-        size_t top5 = 100;
+        size_t top5 = 1;
 
         double result_x, result_y, result_ang;
         if(top5>matches.size()) top5=matches.size();
@@ -459,8 +495,8 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
             }
             */
 
-            std::cout << "\nmatch.template_id: " << match.template_id << std::endl;
-            std::cout << "match.similarity: " << match.similarity << std::endl;
+            //std::cout << "\nmatch.template_id: " << match.template_id << std::endl;
+            //std::cout << "match.similarity: " << match.similarity << std::endl;
         }
 
         if (DEBUG)
@@ -469,12 +505,17 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
           waitKey(1);
         }
 
-        std::cout << "test end" << std::endl << std::endl;
+        //std::cout << "test end" << std::endl << std::endl;
 
         x = result_x;
         y = result_y;
         angle = result_ang;
         return true;
+  }
+  catch(...)
+  {
+    return 0;
+  }
 }
 
 void noise_test(string mode = "test"){
@@ -497,7 +538,7 @@ void noise_test(string mode = "test"){
 
             std::cout << "\ninfo.angle: " << info.angle << std::endl;
             int templ_id = detector.addTemplate(shapes.src_of(info), class_id, shapes.mask_of(info));
-            std::cout << "templ_id: " << templ_id << std::endl;
+            //std::cout << "templ_id: " << templ_id << std::endl;
             if(templ_id != -1){
                 infos_have_templ.push_back(info);
             }
@@ -628,41 +669,144 @@ class Matching{
 };
 
 void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
-  cv::Mat gray;
+  cv::Mat gray, points_img;
   cv::Mat image = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image;
   cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
 
+  std::vector<cv::Point> point_list;
   std::vector<double> edges_x, edges_y;
   double result_x, result_y, result_angle;
-  auto ret = angle_test(true, gray, result_x, result_y, result_angle, edges_x, edges_y); // test or train
-  if(ret)
+  geometry_msgs::Polygon result_msg;
+  geometry_msgs::Point32 point;
+  geometry_msgs::Polygon edges_msg;
+
+  bool loop = true;
+
+  while(loop)
   {
-    geometry_msgs::Polygon result_msg;
-    geometry_msgs::Point32 point;
 
-    point.x = result_x;
-    point.y = result_y;
-    point.z = result_angle;
+    auto ret = angle_test(true, gray, result_x, result_y, result_angle, edges_x, edges_y); // test or train
 
-    result_msg.points.push_back(point);
+    loop = ret;
 
-    result_pub.publish(result_msg);
-
-    geometry_msgs::Polygon edges_msg;
-
-    for (int i=0;i<edges_x.size();i++)
+    if ((gray.cols > 0) && (gray.rows > 0))
     {
-      geometry_msgs::Point32 p;
-      p.x =(float)edges_x[i];
-      p.y = (float)edges_y[i];
-      edges_msg.points.push_back(p);
+      points_img = cv::Mat::zeros(gray.rows, gray.cols, CV_8UC1);
+
+      if(ret)
+      {
+        edges_msg.points.clear();
+
+        point.x = result_x;
+        point.y = result_y;
+        point.z = result_angle;
+
+
+        point_list.clear();
+        for (int i=0;i<edges_x.size();i++)
+        {
+          geometry_msgs::Point32 p;
+          p.x =(float)edges_x[i];
+          p.y = (float)edges_y[i];
+          edges_msg.points.push_back(p);
+
+          cv::Point newPoint;
+          cv::Point rp;
+          rp = rotate(cv::Point((int)p.x,(int)p.y), -result_angle);
+          newPoint.x = (int)rp.x + (int)point.x;
+          newPoint.y = (int)rp.y + (int)point.y;
+          point_list.push_back(newPoint);
+
+          if ((newPoint.x >= 0)&&(newPoint.x <points_img.cols)){
+            if ((newPoint.y >= 0)&&(newPoint.y <points_img.rows)){
+              points_img.at<uchar>(newPoint.y, newPoint.x) = 255;
+            }
+          }
+
+    /*
+          try{
+          }
+          catch(...)
+          {
+          }
+          */
+        }
+
+        std::vector<cv::Point> approx;
+        cv::convexHull(point_list, approx);
+
+        double per = polygon_occupancy(approx, gray);
+        std::cout << "per:" << per << std::endl;
+
+        if (per > 0.8)
+        {
+          result_msg.points.push_back(point);
+        }
+        else
+        {
+          loop = 0;
+          break;
+        }
+
+        cv::fillConvexPoly(points_img, approx, cv::Scalar(255));
+        cv::dilate(points_img, points_img, cv::Mat::ones(7, 7, CV_8U ));
+
+        point_list.clear();
+        for (int i=0;i<points_img.cols;i++){
+          for (int j=0;j<points_img.rows;j++){
+            if (points_img.at<uchar>(j,i) == 255)
+            {
+              cv::Point p;
+              p.x = i;
+              p.y = j;
+              point_list.push_back(p);
+            }
+          }
+        }
+        approx.clear();
+        cv::convexHull(point_list, approx);
+
+        cv::fillConvexPoly(gray, approx,cv::Scalar(0));
+        //cv::imshow("points_image",points_img);
+        //cv::imshow("image",gray);
+        // closing
+        /*
+        int morph_size = 2;
+        Mat element = getStructuringElement(
+        MORPH_RECT,
+        Size(2 * morph_size + 1,
+              2 * morph_size + 1),
+                 Point(morph_size, morph_size));
+        cv::morphologyEx(gray, gray,
+        cv::MORPH_OPEN, element,
+            Point(-1, -1), 2);
+        */
+      }
+      else
+      {
+        break;
+      }
+    }
+  }
+
+  edges_pub.publish(edges_msg);
+  result_pub.publish(result_msg);
+
+  if (DEBUG)
+  {
+    if ((gray.cols > 0) && (gray.rows > 0))
+    {
+        //cv::imshow("image",gray);
     }
 
-    edges_pub.publish(edges_msg);
+    if ((points_img.cols > 0) && (points_img.rows > 0))
+    {
+      //cv::imshow("points_image", points_img);
+    }
 
+    cv::waitKey(100);
   }
-  //cv::imshow("image",image);
-  //cv::waitKey(1);
+
 }
 
 void Matching::trainCallback(const sensor_msgs::ImageConstPtr& msg) {
