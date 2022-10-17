@@ -36,9 +36,11 @@ double polygon_occupancy(std::vector<cv::Point> ps, cv::Mat image)
   cv::Mat mask = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
   cv::fillConvexPoly(mask, ps, cv::Scalar(255));
   int polygon_pix_num = cv::countNonZero(mask);
+  std::cout << "polygon pix num :" << polygon_pix_num << std::endl;
   cv::bitwise_and(img, mask, img);
   int in_polygon_pix_num = cv::countNonZero(img);
-  per = in_polygon_pix_num / polygon_pix_num;
+  std::cout << "in polygon pix num :" << in_polygon_pix_num << std::endl;
+  per = (double)in_polygon_pix_num / polygon_pix_num;
   cv::imshow("mask", mask);
   cv::imshow("masked_img", img);
   return per;
@@ -190,7 +192,7 @@ void scale_test(string mode = "test"){
             //feature numbers(missing it means using the detector initial num)
             int templ_id = detector.addTemplate(shapes.src_of(info), class_id, shapes.mask_of(info),
                                                 int(num_feature*info.scale));
-            std::cout << "templ_id: " << templ_id << std::endl;
+            //std::cout << "templ_id: " << templ_id << std::endl;
 
             // may fail when asking for too many feature_nums for small training img
             if(templ_id != -1){  // only record info when we successfully add template
@@ -308,7 +310,7 @@ bool angle_train(bool use_rot, Mat image){
         for(auto& info: shapes.infos){
             Mat to_show = shapes.src_of(info);
 
-            std::cout << "\ninfo.angle: " << info.angle << std::endl;
+            //std::cout << "\ninfo.angle: " << info.angle << std::endl;
             int templ_id;
 
             if(is_first){
@@ -333,7 +335,7 @@ bool angle_train(bool use_rot, Mat image){
      //       imshow("train", to_show);
      //      waitKey(1);
 
-            std::cout << "templ_id: " << templ_id << std::endl;
+            //std::cout << "templ_id: " << templ_id << std::endl;
             if(templ_id != -1){
                 infos_have_templ.push_back(info);
             }
@@ -358,7 +360,7 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
         if ((image.cols == 0) || (image.rows == 0))
           return 0;
 
-	std::cout << "debug1" << std::endl;
+	//std::cout << "debug1" << std::endl;
     line2Dup::Detector detector(128, {4, 8});
 
         std::vector<std::string> ids;
@@ -413,7 +415,7 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
 
 //        cvtColor(img, img, CV_BGR2GRAY);
 
-        std::cout << "test img size: " << img.rows * img.cols << std::endl << std::endl;
+        //std::cout << "test img size: " << img.rows * img.cols << std::endl << std::endl;
 
         Timer timer;
         auto matches = detector.match(img, 30, ids); // image, threshold(0 ~ 100?)
@@ -421,7 +423,7 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
 
         if(img.channels() == 1) cvtColor(img, img, CV_GRAY2BGR);
 
-        std::cout << "matches.size(): " << matches.size() << std::endl;
+        //std::cout << "matches.size(): " << matches.size() << std::endl;
 
         if (matches.size() == 0)
           return 0;
@@ -493,8 +495,8 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
             }
             */
 
-            std::cout << "\nmatch.template_id: " << match.template_id << std::endl;
-            std::cout << "match.similarity: " << match.similarity << std::endl;
+            //std::cout << "\nmatch.template_id: " << match.template_id << std::endl;
+            //std::cout << "match.similarity: " << match.similarity << std::endl;
         }
 
         if (DEBUG)
@@ -503,7 +505,7 @@ bool angle_test( bool use_rot, cv::Mat image, double &x, double &y, double &angl
           waitKey(1);
         }
 
-        std::cout << "test end" << std::endl << std::endl;
+        //std::cout << "test end" << std::endl << std::endl;
 
         x = result_x;
         y = result_y;
@@ -536,7 +538,7 @@ void noise_test(string mode = "test"){
 
             std::cout << "\ninfo.angle: " << info.angle << std::endl;
             int templ_id = detector.addTemplate(shapes.src_of(info), class_id, shapes.mask_of(info));
-            std::cout << "templ_id: " << templ_id << std::endl;
+            //std::cout << "templ_id: " << templ_id << std::endl;
             if(templ_id != -1){
                 infos_have_templ.push_back(info);
             }
@@ -733,15 +735,20 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
         cv::convexHull(point_list, approx);
 
         double per = polygon_occupancy(approx, gray);
+        std::cout << "per:" << per << std::endl;
 
-        if (per > 0.7)
+        if (per > 0.8)
         {
           result_msg.points.push_back(point);
+        }
+        else
+        {
           loop = 0;
+          break;
         }
 
         cv::fillConvexPoly(points_img, approx, cv::Scalar(255));
-        cv::dilate(points_img, points_img, cv::Mat::ones(5, 5, CV_8U ));
+        cv::dilate(points_img, points_img, cv::Mat::ones(7, 7, CV_8U ));
 
         point_list.clear();
         for (int i=0;i<points_img.cols;i++){
@@ -758,9 +765,9 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
         approx.clear();
         cv::convexHull(point_list, approx);
 
-        cv::fillConvexPoly(gray, approx, approx.size(), 0);
-        cv::imshow("points_image",points_img);
-        cv::imshow("image",gray);
+        cv::fillConvexPoly(gray, approx,cv::Scalar(0));
+        //cv::imshow("points_image",points_img);
+        //cv::imshow("image",gray);
         // closing
         /*
         int morph_size = 2;
@@ -776,7 +783,7 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
       }
       else
       {
-
+        break;
       }
     }
   }
@@ -788,12 +795,12 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
   {
     if ((gray.cols > 0) && (gray.rows > 0))
     {
-        cv::imshow("image",gray);
+        //cv::imshow("image",gray);
     }
 
     if ((points_img.cols > 0) && (points_img.rows > 0))
     {
-      cv::imshow("points_image", points_img);
+      //cv::imshow("points_image", points_img);
     }
 
     cv::waitKey(100);
