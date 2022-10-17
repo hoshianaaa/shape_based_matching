@@ -19,7 +19,7 @@ const double PI=3.141592653589793;
 using namespace std;
 using namespace cv;
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 
 std::string name_space_ = "";
 
@@ -41,8 +41,8 @@ double polygon_occupancy(std::vector<cv::Point> ps, cv::Mat image)
   int in_polygon_pix_num = cv::countNonZero(img);
   std::cout << "in polygon pix num :" << in_polygon_pix_num << std::endl;
   per = (double)in_polygon_pix_num / polygon_pix_num;
-  cv::imshow("mask", mask);
-  cv::imshow("masked_img", img);
+  //cv::imshow("mask", mask);
+  //cv::imshow("masked_img", img);
   return per;
 }
 
