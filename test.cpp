@@ -14,6 +14,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 
+const double PI=3.141592653589793;
 
 using namespace std;
 using namespace cv;
@@ -26,6 +27,15 @@ static std::string prefix = "/shape_based_matching/test/";
 
 int temp_img_width = 50;
 int temp_img_height = 100;
+
+cv::Point rotate(cv::Point p, double deg)
+{
+  double rad = PI * deg / 180;
+  cv::Point res;
+  res.x = int( std::cos(rad) * p.x - std::sin(rad) * p.y);
+  res.y = int (std::sin(rad) * p.x + std::cos(rad) * p.y);
+  return res;
+}
 
 class Timer
 {
@@ -675,8 +685,10 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
         edges_msg.points.push_back(p);
 
         cv::Point newPoint;
-        newPoint.x = (int)p.x + (int)point.x;
-        newPoint.y = (int)p.y + (int)point.y;
+        cv::Point rp;
+        rp = rotate(cv::Point((int)p.x,(int)p.y), -result_angle);
+        newPoint.x = (int)rp.x + (int)point.x;
+        newPoint.y = (int)rp.y + (int)point.y;
         point_list.push_back(newPoint);
 
         if ((newPoint.x >= 0)&&(newPoint.x <points_img.cols)){
