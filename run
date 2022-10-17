@@ -1,0 +1,4 @@
+CRIPT_DIR=$(cd $(dirname $0); pwd)
+bash ros_entrypoint.sh
+source $CRIPT_DIR/in_bashrc.sh
+.$CRIPT_DIR/build/shape_based_matching_test "$@"
