@@ -658,93 +658,102 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
   std::vector<cv::Point> point_list;
   std::vector<double> edges_x, edges_y;
   double result_x, result_y, result_angle;
-  auto ret = angle_test(true, gray, result_x, result_y, result_angle, edges_x, edges_y); // test or train
   geometry_msgs::Polygon result_msg;
   geometry_msgs::Point32 point;
   geometry_msgs::Polygon edges_msg;
 
-  if ((gray.cols > 0) && (gray.rows > 0))
+  bool loop = true;
+
+  while(loop)
   {
-    points_img = cv::Mat::zeros(gray.rows, gray.cols, CV_8UC1);
+    auto ret = angle_test(true, gray, result_x, result_y, result_angle, edges_x, edges_y); // test or train
 
-    if(ret)
+    loop = ret;
+
+    if ((gray.cols > 0) && (gray.rows > 0))
     {
-      point.x = result_x;
-      point.y = result_y;
-      point.z = result_angle;
+      points_img = cv::Mat::zeros(gray.rows, gray.cols, CV_8UC1);
 
-      result_msg.points.push_back(point);
-
-
-
-      for (int i=0;i<edges_x.size();i++)
+      if(ret)
       {
-        geometry_msgs::Point32 p;
-        p.x =(float)edges_x[i];
-        p.y = (float)edges_y[i];
-        edges_msg.points.push_back(p);
+        point.x = result_x;
+        point.y = result_y;
+        point.z = result_angle;
 
-        cv::Point newPoint;
-        cv::Point rp;
-        rp = rotate(cv::Point((int)p.x,(int)p.y), -result_angle);
-        newPoint.x = (int)rp.x + (int)point.x;
-        newPoint.y = (int)rp.y + (int)point.y;
-        point_list.push_back(newPoint);
+        result_msg.points.push_back(point);
 
-        if ((newPoint.x >= 0)&&(newPoint.x <points_img.cols)){
-          if ((newPoint.y >= 0)&&(newPoint.y <points_img.rows)){
-            points_img.at<uchar>(newPoint.y, newPoint.x) = 255;
+
+
+        for (int i=0;i<edges_x.size();i++)
+        {
+          geometry_msgs::Point32 p;
+          p.x =(float)edges_x[i];
+          p.y = (float)edges_y[i];
+          edges_msg.points.push_back(p);
+
+          cv::Point newPoint;
+          cv::Point rp;
+          rp = rotate(cv::Point((int)p.x,(int)p.y), -result_angle);
+          newPoint.x = (int)rp.x + (int)point.x;
+          newPoint.y = (int)rp.y + (int)point.y;
+          point_list.push_back(newPoint);
+
+          if ((newPoint.x >= 0)&&(newPoint.x <points_img.cols)){
+            if ((newPoint.y >= 0)&&(newPoint.y <points_img.rows)){
+              points_img.at<uchar>(newPoint.y, newPoint.x) = 255;
+            }
+          }
+
+    /*
+          try{
+          }
+          catch(...)
+          {
+          }
+          */
+        }
+
+        std::vector<cv::Point> approx;
+        cv::convexHull(point_list, approx);
+        cv::fillConvexPoly(points_img, approx, cv::Scalar(255));
+        cv::dilate(points_img, points_img, cv::Mat::ones(5, 5, CV_8U ));
+
+        point_list.clear();
+        for (int i=0;i<points_img.cols;i++){
+          for (int j=0;j<points_img.rows;j++){
+            if (points_img.at<uchar>(j,i) == 255)
+            {
+              cv::Point p;
+              p.x = i;
+              p.y = j;
+              point_list.push_back(p);
+            }
           }
         }
+        approx.clear();
+        cv::convexHull(point_list, approx);
 
-  /*
-        try{
-        }
-        catch(...)
-        {
-        }
+        cv::fillConvexPoly(gray, approx, approx.size(), 0);
+        // closing
+        /*
+        int morph_size = 2;
+        Mat element = getStructuringElement(
+        MORPH_RECT,
+        Size(2 * morph_size + 1,
+              2 * morph_size + 1),
+                 Point(morph_size, morph_size));
+        cv::morphologyEx(gray, gray,
+        cv::MORPH_OPEN, element,
+            Point(-1, -1), 2);
         */
       }
+      else
+      {
 
-      std::vector<cv::Point> approx;
-      cv::convexHull(point_list, approx);
-      cv::fillConvexPoly(points_img, approx, cv::Scalar(255));
-      cv::dilate(points_img, points_img, cv::Mat::ones(7, 7, CV_8U ));
-
-      point_list.clear();
-      for (int i=0;i<points_img.cols;i++){
-        for (int j=0;j<points_img.rows;j++){
-          if (points_img.at<uchar>(j,i) == 255)
-          {
-            cv::Point p;
-            p.x = i;
-            p.y = j;
-            point_list.push_back(p);
-          }
-        }
       }
-      approx.clear();
-      cv::convexHull(point_list, approx);
-
-      cv::fillConvexPoly(gray, approx, approx.size(), 0);
-      // closing
-      /*
-      int morph_size = 2;
-      Mat element = getStructuringElement(
-      MORPH_RECT,
-      Size(2 * morph_size + 1,
-            2 * morph_size + 1),
-               Point(morph_size, morph_size));
-      cv::morphologyEx(gray, gray,
-      cv::MORPH_OPEN, element,
-          Point(-1, -1), 2);
-      */
-    }
-    else
-    {
-
     }
   }
+
   edges_pub.publish(edges_msg);
   result_pub.publish(result_msg);
 
