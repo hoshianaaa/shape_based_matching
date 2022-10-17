@@ -28,6 +28,22 @@ static std::string prefix = "/shape_based_matching/test/";
 int temp_img_width = 50;
 int temp_img_height = 100;
 
+double polygon_occupancy(std::vector<cv::Point> ps, cv::Mat image)
+{
+  double per = 1.0;
+  cv::Mat img = image.clone();
+
+  cv::Mat mask = cv::Mat::zeros(img.rows, img.cols, CV_8UC1);
+  cv::fillConvexPoly(mask, ps, cv::Scalar(255));
+  int polygon_pix_num = cv::countNonZero(mask);
+  cv::bitwise_and(img, mask, img);
+  int in_polygon_pix_num = cv::countNonZero(img);
+  per = in_polygon_pix_num / polygon_pix_num;
+  cv::imshow("mask", mask);
+  cv::imshow("masked_img", img);
+  return per;
+}
+
 cv::Point rotate(cv::Point p, double deg)
 {
   double rad = PI * deg / 180;
@@ -676,14 +692,14 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
 
       if(ret)
       {
+        edges_msg.points.clear();
+
         point.x = result_x;
         point.y = result_y;
         point.z = result_angle;
 
-        result_msg.points.push_back(point);
 
-
-
+        point_list.clear();
         for (int i=0;i<edges_x.size();i++)
         {
           geometry_msgs::Point32 p;
@@ -715,6 +731,15 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
 
         std::vector<cv::Point> approx;
         cv::convexHull(point_list, approx);
+
+        double per = polygon_occupancy(approx, gray);
+
+        if (per > 0.7)
+        {
+          result_msg.points.push_back(point);
+          loop = 0;
+        }
+
         cv::fillConvexPoly(points_img, approx, cv::Scalar(255));
         cv::dilate(points_img, points_img, cv::Mat::ones(5, 5, CV_8U ));
 
@@ -734,6 +759,8 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
         cv::convexHull(point_list, approx);
 
         cv::fillConvexPoly(gray, approx, approx.size(), 0);
+        cv::imshow("points_image",points_img);
+        cv::imshow("image",gray);
         // closing
         /*
         int morph_size = 2;
