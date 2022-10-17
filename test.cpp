@@ -709,9 +709,22 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
       std::vector<cv::Point> approx;
       cv::convexHull(point_list, approx);
       cv::fillConvexPoly(points_img, approx, cv::Scalar(255));
-      cv::dilate(points_img, points_img, cv::Mat::ones(10, 10, CV_8U ));
+      cv::dilate(points_img, points_img, cv::Mat::ones(7, 7, CV_8U ));
 
-      
+      point_list.clear();
+      for (int i=0;i<points_img.cols;i++){
+        for (int j=0;j<points_img.rows;j++){
+          if (points_img.at<uchar>(j,i) == 255)
+          {
+            cv::Point p;
+            p.x = i;
+            p.y = j;
+            point_list.push_back(p);
+          }
+        }
+      }
+      approx.clear();
+      cv::convexHull(point_list, approx);
 
       cv::fillConvexPoly(gray, approx, approx.size(), 0);
       // closing
