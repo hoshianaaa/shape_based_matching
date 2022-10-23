@@ -32,6 +32,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp 
   cv_bridge
   image_transport
+  std_msgs
 ) 
 
 find_package(OpenCV 3 REQUIRED)

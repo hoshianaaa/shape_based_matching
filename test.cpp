@@ -8,6 +8,7 @@
 #include "geometry_msgs/Point.h"
 #include "geometry_msgs/Point32.h"
 #include "geometry_msgs/Polygon.h"
+#include "std_msgs/Int32.h"
 
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
@@ -649,9 +650,11 @@ class Matching{
   private:
     ros::NodeHandle nh;
     ros::Publisher result_pub, edges_pub;
+    ros::Subscriber search_num_sub;
     //ros::Subscriber sub;
     image_transport::Subscriber train_sub, test_sub;
     image_transport::ImageTransport it;
+    int search_num_;
   public:
 
     Matching()
@@ -661,12 +664,18 @@ class Matching{
       edges_pub = nh.advertise<geometry_msgs::Polygon>(name_space_ + "matching/edges", 1);
       test_sub = it.subscribe(name_space_ + "usb_cam/image_raw", 10, &Matching::testCallback, this);
       train_sub = it.subscribe(name_space_ + "cripped_image", 10, &Matching::trainCallback, this);
-
+      search_num_sub = nh.subscribe(name_space_ + "matching/set_serch_num", 10, &Matching::searchNumCallback, this);
+      search_num_ = 1;
     }
 
     void trainCallback(const sensor_msgs::ImageConstPtr& msg);
     void testCallback(const sensor_msgs::ImageConstPtr& msg);
+    void searchNumCallback(const std_msgs::Int32ConstPtr& msg);
 };
+
+void Matching::searchNumCallback(const std_msgs::Int32ConstPtr& msg) {
+  search_num_ = msg->data;
+}
 
 void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
   cv::Mat gray, points_img;
@@ -747,6 +756,7 @@ void Matching::testCallback(const sensor_msgs::ImageConstPtr& msg) {
           loop = 0;
           break;
         }
+	if (result_msg.points.size() == search_num_)break;
 
         cv::fillConvexPoly(points_img, approx, cv::Scalar(255));
         cv::dilate(points_img, points_img, cv::Mat::ones(7, 7, CV_8U ));
